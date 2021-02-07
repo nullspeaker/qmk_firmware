@@ -3,14 +3,21 @@
 
 struct {
 	uint8_t selector;
+	uint8_t selstep;
+	uint8_t rgb_mode;
+	uint8_t rgb_hue;
+	uint8_t rgb_sat;
+	uint8_t rgb_val;
 } gSTATE;
 
 inline void clamp(uint8_t* var, const uint8_t min, const uint8_t max) {
 	if		(*var > max) { *var = max; }
 	else if (*var < min) { *var = min; }
 }
-inline void inc(uint8_t* var, const uint8_t min, const uint8_t max) { (*var)++; clamp(var, min, max); }
-inline void dec(uint8_t* var, const uint8_t min, const uint8_t max) { (*var)--; clamp(var, min, max); }
+inline void inc(uint8_t* var) { (*var)++; }
+inline void dec(uint8_t* var) { (*var)--; }
+inline void inc_step(uint8_t* var) { (*var) += gSTATE.selstep; }
+inline void dec_step(uint8_t* var) { (*var) -= gSTATE.selstep; }
 
 enum sofle_layers {
 	_QWERTY,
@@ -117,62 +124,68 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 #ifdef RGBLIGHT_ENABLE
 const rgblight_segment_t PROGMEM rgblayer_lower[] = RGBLIGHT_LAYER_SEGMENTS( { 0, 55, HSV_GREEN  } );
 const rgblight_segment_t PROGMEM rgblayer_raise[] = RGBLIGHT_LAYER_SEGMENTS( { 0, 55, HSV_PURPLE } );
-const rgblight_segment_t PROGMEM rgblayer_adj[]   = RGBLIGHT_LAYER_SEGMENTS( { 0, 55, HSV_GOLD   } );
 const rgblight_segment_t* const PROGMEM my_rgb_layers[] = RGBLIGHT_LAYERS_LIST(
-	rgblayer_lower, rgblayer_raise, rgblayer_adj
+	rgblayer_lower, rgblayer_raise
 );
 void keyboard_post_init_user(void) {
 	rgblight_layers = my_rgb_layers;
-	rgblight_mode(6);
+	gSTATE.rgb_mode = 8;
+	gSTATE.rgb_hue  = 136;
+	gSTATE.rgb_sat  = 255;
+	gSTATE.rgb_val  = 127;
+	gSTATE.selstep  = 1;
+
+	rgblight_mode(gSTATE.rgb_mode);
 }
 layer_state_t layer_state_set_user(layer_state_t state) {
-	rgblight_set_layer_state(0, layer_state_cmp(state, _LOWER));
-	rgblight_set_layer_state(1, layer_state_cmp(state, _RAISE));
-	rgblight_set_layer_state(2, layer_state_cmp(state, _ADJUST));
+	rgblight_set_layer_state(0, layer_state_cmp(state, _LOWER) && !layer_state_cmp(state, _ADJUST));
+	rgblight_set_layer_state(1, layer_state_cmp(state, _RAISE) && !layer_state_cmp(state, _ADJUST));
 	return state;
 }	
 #endif
 
 #ifdef OLED_DRIVER_ENABLE
-void oled_printu8(char* tag, uint8_t val, bool highlight_tag) {
+void oled_printu8(uint8_t val) {
 	char buf[16];
-
-	sprintf(buf, "%s ", tag);
-	oled_write(buf, highlight_tag);
-
-	sprintf(buf, "%d\n", val);
+	sprintf(buf, "%3d\n", val);
 	oled_write(buf, false);
 }
 
 static void right_oled(void) {
-	oled_write_ln_P(PSTR("_dab_"), false);
+	oled_write_ln_P(PSTR("moss"), false);
 }
 
 static void left_oled(void) {
+	static layer_state_t prevlayer;
 	layer_state_t toplayer = get_highest_layer(layer_state);
-	bool rtx_on = rgblight_is_enabled();
-	if (toplayer == _ADJUST) {
-		oled_write_P(PSTR("RTX"), false); 
-		if (rtx_on) { oled_write_ln_P(PSTR("  "), true ); }
-		else		{ oled_write_ln_P(PSTR("  "), false); }
-
-		oled_printu8("spd", rgblight_get_speed(), false);
-		oled_printu8("mod", rgblight_get_mode(),  false);
-
-
-	} else {  /*	base layer		*/
-		oled_write_P(PSTR(""), false);
-
-		// Print current layer
-		oled_write_ln_P(PSTR("LAYER"), false);
-		switch (get_highest_layer(layer_state)) {
-			case _RAISE:  oled_write_P(PSTR("raise"), false); break;
-			case _LOWER:  oled_write_P(PSTR("lower"), false); break;
-			case _ADJUST: oled_write_P(PSTR("adjst"), false); break;
-			default:	  oled_write_P(PSTR("     "), false);
-		}
+	if (prevlayer != toplayer) {
+		oled_clear();
+		prevlayer = toplayer;
 	}
-	oled_write_P(PSTR("\n\n\n"), false);
+
+	// Print current layer
+	oled_write_ln_P(PSTR("LAYER"), false);
+	switch (toplayer) {
+		case _RAISE:  oled_write_P(PSTR("raise"), false); break;
+		case _LOWER:  oled_write_P(PSTR("lower"), false); break;
+		case _ADJUST: oled_write_P(PSTR("adjst"), false); break;
+	}
+
+	if (toplayer == _ADJUST) {
+		oled_write_ln_P(PSTR("mode"), gSTATE.selector == 0);
+			oled_printu8(gSTATE.rgb_mode);
+		oled_write_ln_P(PSTR("hue") , gSTATE.selector == 1);
+			oled_printu8(gSTATE.rgb_hue);
+		oled_write_ln_P(PSTR("sat") , gSTATE.selector == 2);
+			oled_printu8(gSTATE.rgb_sat);
+		oled_write_ln_P(PSTR("val") , gSTATE.selector == 3);
+			oled_printu8(gSTATE.rgb_val);
+		oled_write_ln_P(PSTR("step"), gSTATE.selector == 4);
+			oled_printu8(gSTATE.selstep);
+
+	} else {
+		/* base layer */
+	}
 }
 
 oled_rotation_t oled_init_user(oled_rotation_t rotation) {
@@ -221,12 +234,36 @@ void encoder_layered_lower(uint8_t idx, bool cw) {
 
 void encoder_layered_adjst(uint8_t idx, bool cw) {
 	if (idx == 0) {			/* left */
-		if (cw) { rgblight_step(); }
-		else	{ rgblight_step_reverse(); }
+		if (cw) { inc(&gSTATE.selector); }
+		else	{ dec(&gSTATE.selector); }
+		clamp(&gSTATE.selector, 0, 4);
 	} else if (idx == 1) {	/* right */
-		if (cw) { rgblight_increase_speed(); }
-		else	{ rgblight_decrease_speed(); }
+		switch(gSTATE.selector) {
+			case 0: /* mode (hacky upper bound) */
+				if (cw) { inc(&gSTATE.rgb_mode); }
+				else	{ dec(&gSTATE.rgb_mode); }
+				clamp(&gSTATE.rgb_mode, 0, rgblight_get_mode()+1); break;
+			case 1: /* hue */
+				if (cw) { inc_step(&gSTATE.rgb_hue); }
+				else	{ dec_step(&gSTATE.rgb_hue); }
+				clamp(&gSTATE.rgb_hue, 0, 255); break;
+			case 2: /* sat */
+				if (cw) { inc_step(&gSTATE.rgb_sat); }
+				else	{ dec_step(&gSTATE.rgb_sat); }
+				clamp(&gSTATE.rgb_sat, 0, 255); break;
+			case 3: /* val (limited) */
+				if (cw) { inc_step(&gSTATE.rgb_val); }
+				else	{ dec_step(&gSTATE.rgb_val); }
+				clamp(&gSTATE.rgb_val, 0, 127); break;
+			case 4: /* step */
+				if (cw) { inc(&gSTATE.selstep); }
+				else	{ dec(&gSTATE.selstep); }
+				clamp(&gSTATE.selstep, 1, 16);  break;
+		}
+		rgblight_sethsv(gSTATE.rgb_hue, gSTATE.rgb_sat, gSTATE.rgb_val);
+		rgblight_mode(gSTATE.rgb_mode);
 	}
+	oled_task_user();
 }
 void encoder_update_user(uint8_t index, bool clockwise) {
     switch (get_highest_layer(layer_state)) {
