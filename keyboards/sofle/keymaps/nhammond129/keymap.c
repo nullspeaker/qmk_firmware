@@ -53,8 +53,8 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     KC_BSPC, KC_0, KC_9, KC_8, KC_7, KC_6, KC_5, KC_4, KC_3, KC_2, KC_1, KC_GRV, \
     KC_BSLS, KC_P, KC_O, KC_I, KC_U, KC_Y, KC_T, KC_R, KC_E, KC_W, KC_Q, KC_TAB, \
     KC_QUOT, KC_SCLN, KC_L, KC_K, KC_J, KC_H, KC_G, KC_F, KC_D, KC_S, KC_A, KC_ESC, \
-    KC_DELETE, KC_SLSH, KC_DOT, KC_COMM, KC_M, XXXXXXX,KC_N, KC_MUTE, KC_B, KC_V, KC_C, KC_X, KC_Z, KC_LSFT, \
-    KC_RCTRL, KC_RGUI, KC_RALT, KC_RAISE, KC_ENT, KC_SPC, KC_LOWER, KC_LCTRL, KC_LGUI, KC_LALT
+    KC_DELETE, KC_SLSH, KC_DOT, KC_COMM, KC_M, KC_N, XXXXXXX, KC_MUTE, KC_B, KC_V, KC_C, KC_X, KC_Z, KC_LSFT, \
+    KC_RCTRL, KC_RGUI, KC_RALT, KC_RAISE, KC_ENT, KC_SPC, KC_LOWER, KC_LALT, KC_LGUI, KC_LCTRL
 ),
 /* LOWER
  * ,-----------------------------------------.                    ,-----------------------------------------.
@@ -129,7 +129,7 @@ const rgblight_segment_t* const PROGMEM my_rgb_layers[] = RGBLIGHT_LAYERS_LIST(
 );
 void keyboard_post_init_user(void) {
 	rgblight_layers = my_rgb_layers;
-	gSTATE.rgb_mode = 8;
+	gSTATE.rgb_mode = 7;
 	gSTATE.rgb_hue  = 136;
 	gSTATE.rgb_sat  = 255;
 	gSTATE.rgb_val  = 127;
@@ -203,12 +203,12 @@ void oled_task_user(void) {
 #ifdef ENCODER_ENABLE
 
 void encoder_layered_none(uint8_t idx, bool cw) {
-	if (idx == 0) {			/* left */
-		if (cw) { tap_code(KC_VOLU); }
-		else	{ tap_code(KC_VOLD); }
-	} else if (idx == 1) {	/* right */
+	if (idx == 0) {			/* right */
 		if (cw) { tap_code(KC_UP); }
 		else	{ tap_code(KC_DOWN); }
+	} else if (idx == 1) {	/* left  */
+		if (cw) { tap_code(KC_VOLU); }
+		else	{ tap_code(KC_VOLD); }
 	}
 }
 
@@ -266,11 +266,12 @@ void encoder_layered_adjst(uint8_t idx, bool cw) {
 	oled_task_user();
 }
 bool encoder_update_user(uint8_t index, bool clockwise) {
+    clockwise = !clockwise;  // invert direction because of handswap
     switch (get_highest_layer(layer_state)) {
         case _RAISE:  encoder_layered_raise(index, clockwise);  break;
         case _LOWER:  encoder_layered_lower(index, clockwise);  break;
         case _ADJUST: encoder_layered_adjst(index, clockwise); break;
-        default:	  encoder_layered_none(index, clockwise);
+        default:	  encoder_layered_none(index,  clockwise);
     }
     return true;
 }
