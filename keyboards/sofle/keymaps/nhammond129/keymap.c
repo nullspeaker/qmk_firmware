@@ -2,25 +2,25 @@
 #include <stdio.h>
 
 struct {
-	uint8_t selector;
-	uint8_t selstep;
-	uint8_t rgb_mode;
-	uint8_t rgb_hue;
-	uint8_t rgb_sat;
-	uint8_t rgb_val;
+    uint8_t selector;
+    uint8_t selstep;
+    uint8_t rgb_mode;
+    uint8_t rgb_hue;
+    uint8_t rgb_sat;
+    uint8_t rgb_val;
 } gSTATE;
 
-inline void clamp(uint8_t* var, const uint8_t min, const uint8_t max) {
-	if		(*var > max) { *var = max; }
-	else if (*var < min) { *var = min; }
+void clamp(uint8_t* var, const uint8_t min, const uint8_t max) {
+    if      (*var > max) { *var = max; }
+    else if (*var < min) { *var = min; }
 }
-inline void inc(uint8_t* var) { (*var)++; }
-inline void dec(uint8_t* var) { (*var)--; }
-inline void inc_step(uint8_t* var) { (*var) += gSTATE.selstep; }
-inline void dec_step(uint8_t* var) { (*var) -= gSTATE.selstep; }
+void inc(uint8_t* var) { (*var)++; }
+void dec(uint8_t* var) { (*var)--; }
+void inc_step(uint8_t* var) { (*var) += gSTATE.selstep; }
+void dec_step(uint8_t* var) { (*var) -= gSTATE.selstep; }
 
 enum sofle_layers {
-	_QWERTY,
+    _QWERTY,
     _LOWER,
     _RAISE,
     _ADJUST,
@@ -141,7 +141,7 @@ layer_state_t layer_state_set_user(layer_state_t state) {
 	rgblight_set_layer_state(0, layer_state_cmp(state, _LOWER) && !layer_state_cmp(state, _ADJUST));
 	rgblight_set_layer_state(1, layer_state_cmp(state, _RAISE) && !layer_state_cmp(state, _ADJUST));
 	return state;
-}	
+}
 #endif
 
 #ifdef OLED_DRIVER_ENABLE
@@ -265,13 +265,14 @@ void encoder_layered_adjst(uint8_t idx, bool cw) {
 	}
 	oled_task_user();
 }
-void encoder_update_user(uint8_t index, bool clockwise) {
+bool encoder_update_user(uint8_t index, bool clockwise) {
     switch (get_highest_layer(layer_state)) {
         case _RAISE:  encoder_layered_raise(index, clockwise);  break;
         case _LOWER:  encoder_layered_lower(index, clockwise);  break;
         case _ADJUST: encoder_layered_adjst(index, clockwise); break;
         default:	  encoder_layered_none(index, clockwise);
     }
+    return true;
 }
 #endif
 
