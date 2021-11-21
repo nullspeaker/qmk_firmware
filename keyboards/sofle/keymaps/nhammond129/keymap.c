@@ -60,9 +60,9 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
  * ,-----------------------------------------.                    ,-----------------------------------------.
  * | ESC  |  F1  |  F2  |  F3  |  F4  |  F5  |                    |  F6  |  F7  |  F8  |  F9  | F10  | F11  |
  * |------+------+------+------+------+------|                    |------+------+------+------+------+------|
- * |  `   |   1  |   2  |   3  |   4  |   5  |                    |   6  |   7  |   8  |   9  |   0  | F12  |
+ * |  `   | KP 1 | KP 2 | KP 3 | KP 4 | KP 5 |                    |   6  |   7  |   8  |   9  |   0  | F12  |
  * |------+------+------+------+------+------|                    |------+------+------+------+------+------|
- * | Tab  |      |      |      |      |      |-------.    ,-------| LEFT |  DN  |  UP  | RGHT |      |      |
+ * | Tab  | KP 6 | KP 7 | KP 8 | KP 9 | KP 0 |-------.    ,-------| LEFT |  DN  |  UP  | RGHT |      |      |
  * |------+------+------+------+------+------| MUTE  |    |       |------+------+------+------+------+------|
  * | Shift|  =   |  -   |  +   |   {  |   }  |-------|    |-------|   [  |   ]  |      |      | HOME | END  |
  * `-----------------------------------------/       /     \      \-----------------------------------------'
@@ -72,9 +72,9 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
  */
 [_LOWER] = LAYOUT( \
     KC_F11, KC_F10, KC_F9, KC_F8, KC_F7, KC_F6, KC_F5, KC_F4, KC_F3, KC_F2, KC_F1, KC_ESC, \
-    KC_F12, KC_0, KC_9, KC_8, KC_7, KC_6, KC_5, KC_4, KC_3, KC_2, KC_1, KC_GRV, \
-    _______, _______, KC_RIGHT, KC_UP, KC_DOWN, KC_LEFT, _______, _______, _______, _______, _______, KC_TAB, \
-    KC_END, KC_HOME, _______, _______, KC_RBRC, KC_LBRC, _______, _______, KC_RCBR, KC_LCBR, KC_PLUS, KC_MINS, KC_EQL, _______, \
+    KC_F12,  _______, _______, _______, _______, _______, KC_KP_5, KC_KP_4, KC_KP_3, KC_KP_2, KC_KP_1, KC_GRV, \
+    _______, _______, KC_RIGHT, KC_UP, KC_DOWN, KC_LEFT, KC_KP_0, KC_KP_9, KC_KP_8, KC_KP_7, KC_KP_6, KC_TAB, \
+    KC_END, KC_HOME, _______, _______, KC_RBRC, KC_LBRC, _______, _______, KC_RCBR, KC_LCBR, KC_PLUS, _______, KC_NLCK,  _______, \
     _______, _______, _______, _______, _______, _______, _______, _______, _______, _______ \
 ),
 /* RAISE
@@ -136,6 +136,11 @@ void keyboard_post_init_user(void) {
 	gSTATE.selstep  = 1;
 
 	rgblight_mode(gSTATE.rgb_mode);
+
+    // toggle numlock on after init
+    if (!host_keyboard_led_state().num_lock) {
+        tap_code(KC_NUMLOCK);
+    }
 }
 layer_state_t layer_state_set_user(layer_state_t state) {
 	rgblight_set_layer_state(0, layer_state_cmp(state, _LOWER) && !layer_state_cmp(state, _ADJUST));

@@ -5,6 +5,9 @@ see https://docs.qmk.fm/#/feature_split_keyboard?id=setting-handedness
 for more options.
 */
 
+// encoder ticks per event
+#define ENCODER_RESOLUTION 2
+
 // ws2812b
 #define RGB_DI_PIN D3
 
