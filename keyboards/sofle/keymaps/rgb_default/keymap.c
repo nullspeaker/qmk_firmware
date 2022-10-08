@@ -41,15 +41,14 @@ enum sofle_layers {
     _QWERTY = 0,
     _LOWER,
     _RAISE,
-    _ADJUST,
-	_A_BASE
+    _ADJUST
 };
 
 enum custom_keycodes {
     KC_LOWER = SAFE_RANGE,
     KC_RAISE,
     KC_ADJUST,
-	KC_RAISE2,
+	KC_LOW2,
 	A_BASE_S, A_BASE_T, A_BASE_R, A_BASE_A,
 	A_BASE_O, A_BASE_I, A_BASE_Y, A_BASE_E
 };
@@ -64,17 +63,17 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 ),
 [_LOWER] = LAYOUT( \
   KC_ESC,    KC_F1,   KC_F2,   KC_F3,   KC_F4,   KC_F5,                        KC_F6,   KC_F7,   KC_F8,    KC_F9,  KC_F10,  KC_F11,\
-  KC_GRV,     KC_1,    KC_2,    KC_3,    KC_4,    KC_5,                         KC_6,    KC_7,    KC_8,     KC_9,    KC_0,  KC_F12, \
-  KC_TAB,  _______, _______, _______, _______, _______,                      KC_LEFT, KC_DOWN,   KC_UP, KC_RIGHT, _______, _______, \
+  KC_GRV, A_BASE_S,A_BASE_T,A_BASE_R,A_BASE_A, _______,                         KC_6,    KC_7,    KC_8,     KC_9,    KC_0,  KC_F12, \
+  KC_TAB, A_BASE_O,A_BASE_I,A_BASE_Y,A_BASE_E, _______,                      KC_LEFT, KC_DOWN,   KC_UP, KC_RIGHT, _______, _______, \
   _______,  KC_EQL, KC_MINS, KC_PLUS, KC_LCBR, KC_RCBR, _______,    _______, KC_LBRC, KC_RBRC, _______,  _______, KC_HOME,  KC_END, \
-                    _______, _______, _______, _______, KC_RAISE2,  _______, _______, _______, _______,  _______\
+                    _______, _______, _______, _______, KC_LOW2,  _______, _______, _______, _______,  _______\
 ),
 [_RAISE] = LAYOUT( \
   _______, _______, _______, _______, _______, _______,                      _______, _______, KC_PSLS,  KC_PAST,  KC_MINUS,  KC_EQUAL, \
   _______, _______, _______, _______, _______, _______,                      KC_PGUP, KC_7,    KC_8,     KC_9,     KC_PLUS,   KC_RBRC, \
   _______, _______, _______, _______, _______, _______,                      KC_PGDN, KC_4,    KC_5,     KC_6,     _______,   KC_BSPC, \
-  _______, _______, _______, _______, _______, _______, _______,    _______, KC_0,    KC_1,    KC_2,     KC_3,     XXXXXXX,   _______, \
-                    _______, _______, _______, _______, _______,    _______, _______, _______, _______, _______ \
+  _______, _______, _______, _______, _______, _______, _______,     _______, KC_0,    KC_1,    KC_2,     KC_3,     XXXXXXX,   _______, \
+                    _______, _______, _______,KC_RAISE, _______,     _______, _______, _______, _______, _______ \
 ),
 [_ADJUST] = LAYOUT( \
   XXXXXXX ,XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,                     XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, \
@@ -82,13 +81,6 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   XXXXXXX ,XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,                     XXXXXXX, KC_VOLD, KC_MUTE, KC_VOLU, XXXXXXX, XXXXXXX, \
   XXXXXXX ,XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, RGB_TOG,   XXXXXXX, XXXXXXX, KC_MPRV, KC_MPLY, KC_MNXT, XXXXXXX, XXXXXXX, \
                     _______, _______, _______, _______, _______,  _______, _______, _______, _______, _______ \
-),
-[_A_BASE]   = LAYOUT( \
-  _______, _______, _______, _______, _______,  _______,                      _______, _______, KC_PSLS,  KC_PAST,  KC_MINUS,  KC_EQUAL, \
-  _______, A_BASE_S,A_BASE_T,A_BASE_R,A_BASE_A, _______,                      KC_PGUP, KC_7,    KC_8,     KC_9,     KC_PLUS,   KC_RBRC, \
-  _______, A_BASE_O,A_BASE_I,A_BASE_Y,A_BASE_E, _______,                      KC_PGDN, KC_4,    KC_5,     KC_6,     _______,   KC_BSPC, \
-  _______, _______, _______, _______, _______,  _______, _______,    _______, KC_0,    KC_1,    KC_2,     KC_3,     XXXXXXX,   _______, \
-                    _______, _______, _______,  _______, _______,    _______, _______, _______, _______, _______ \
 ),
 };
 
@@ -189,7 +181,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         case KC_LOWER:  keydown ? layer_on(_LOWER)  : layer_off(_LOWER);	break;
         case KC_RAISE:  keydown ? layer_on(_RAISE)  : layer_off(_RAISE);	break;
         case KC_ADJUST: keydown ? layer_on(_ADJUST) : layer_off(_ADJUST);	break;
-		case KC_RAISE2: if (keydown) { layer_on(_A_BASE); break; }
+		case KC_LOW2: if (keydown) { layer_on(_LOWER); break; }
 		default:        return true;
     }
 	update_tri_layer(_LOWER, _RAISE, _ADJUST);
